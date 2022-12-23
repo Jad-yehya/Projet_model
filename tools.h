@@ -20,5 +20,6 @@ void Givens(double **A, int m, int n, double** Q, double **R);
 void Givens2(double **A, int m, int n, double*** Q, double*** R);
 void copy(double **A, double **B, int m, int n);
 void compute_eigenvalues(double ***A, double ***Q, double ***R, int m, int n);
+void compute_eigenvalues2(double **A, int m, int n);
 
 #endif //MODEL_PROJECT_TOOLS_H

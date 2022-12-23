@@ -15,12 +15,16 @@ int main(int argc, char **argv) {
     for (int i = 0; i < 3; i++) {
         A[i] = (double *) malloc(2 * sizeof(double));
     }
-    A[0][0] = 3;
-    A[0][1] = -3;
-    A[1][0] = 4;
-    A[1][1] = -4;
-    A[2][0] = 0;
-    A[2][1] = 40;
+    A[0][0] = 4;
+    A[0][1] = 3;
+    A[0][2] = 9;
+    A[1][0] = 2;
+    A[1][1] = 8;
+    A[1][2] = 5;
+    A[2][0] = 3;
+    A[2][1] = 1;
+    A[2][2] = 2;
+
 
     /*
     A[0][0] = 3;
@@ -31,7 +35,7 @@ int main(int argc, char **argv) {
     A[2][1] = 3.2;
     */
     printf("In main : A = \n");
-    print_matrix(A, 3, 2);
+    print_matrix(A, 3, 3);
 
     Q = (double **) malloc(3 * sizeof(double *));
     for (int i = 0; i < 3; i++) {
@@ -57,7 +61,7 @@ int main(int argc, char **argv) {
     printf("R = \n");
     print_matrix(R, 3, 2);
     */
-    compute_eigenvalues(&A,&Q, &R, 3, 2);
+    compute_eigenvalues2(A, 3, 3);
 
     return 0;
 }

@@ -343,3 +343,74 @@ void compute_eigenvalues(double ***A, double ***Q, double ***R, int m, int n){
 
     compute_eigenvalues(A, Q, R, m, n);
 }
+
+/**
+ * Iterative function that computes Q*A*Q^t
+ * @param A
+ * @param Q
+ * @param R
+ * @param m
+ * @param n
+ */
+void compute_eigenvalues2(double **A, int m, int n)
+{
+
+    double**Q = (double **) malloc(m * sizeof(double *));
+    for (int l = 0; l < m; ++l) {
+        Q[l] = (double *) malloc(m * sizeof(double));
+    }
+
+    double **Qt = (double **)malloc(m * sizeof(double *));
+    for (int l = 0; l < m; ++l)
+    {
+        Qt[l] = (double *)malloc(m * sizeof(double));
+    }
+
+    double**R = (double **) malloc(m * sizeof(double *));
+    for (int l = 0; l < m; ++l) {
+        R[l] = (double *) malloc(n * sizeof(double));
+    }
+
+    double **A2 = (double **) malloc(m * sizeof(double *));
+    for (int l = 0; l < m; ++l) {
+        A2[l] = (double *) malloc(n * sizeof(double));
+    }
+    copy(A, A2, m, n);
+
+    for (int i = 0; i < 3000000 ; ++i)
+    {
+        Givens2(A2, m, n, &Q, &R);
+        transpose_matrix(Q, m, m, Qt);
+        A2 = multiply_matrices(A2, Qt, m);
+        A2 = multiply_matrices(Q, A2, m);
+        //Emptying Q
+        for (int k = 0; k < m; ++k)
+        {
+            for (int l = 0; l < m; ++l)
+            {
+                Q[k][l] = 0;
+            }
+        }
+        //Emptying R
+        for (int k = 0; k < m; ++k)
+        {
+            for (int l = 0; l < n; ++l)
+            {
+                R[k][l] = 0;
+            }
+        }
+        //Emptying Qt
+        for (int k = 0; k < m; ++k)
+        {
+            for (int l = 0; l < m; ++l)
+            {
+                Qt[k][l] = 0;
+            }
+        }
+    }
+    printf("A\n");
+    print_matrix(A2, m, n);
+    free_matrix(Q, m);
+    free_matrix(Qt, m);
+    free_matrix(R, m);
+}
