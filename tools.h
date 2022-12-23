@@ -15,11 +15,11 @@ void print_matrix(double **A,int m, int n);
 double** multiply_matrices(double **A, double **B, int n);
 void findGreatest(double **A, int i, int j, int n,  int *in, int *jn);
 void generate_G(double **G, int i, int j, int m, double** R);
-void transpose_matrix(double ** M, int m, int n, double** Mt);
+void transpose_matrix(double ** M, int m, int n, double*** Mt);
 void Givens(double **A, int m, int n, double** Q, double **R);
 void Givens2(double **A, int m, int n, double*** Q, double*** R);
 void copy(double **A, double **B, int m, int n);
-void compute_eigenvalues(double ***A, double ***Q, double ***R, int m, int n);
+void compute_eigenvalues(double ***A, int m, int n, int* nb_iter);
 void compute_eigenvalues2(double **A, int m, int n);
 
 #endif //MODEL_PROJECT_TOOLS_H

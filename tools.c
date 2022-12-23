@@ -102,7 +102,6 @@ double **multiply_matrices(double **A, double **B, int n) {
             }
         }
     }
-
     return C;
 }
 
@@ -163,10 +162,10 @@ void generate_G(double **G, int i, int j, int m, double** R){
  * @param n : Number of columns
  * @param Mt : Transposed M
  */
-void transpose_matrix(double ** M, int m, int n, double** Mt) {
+void transpose_matrix(double ** M, int m, int n, double*** Mt) {
     for (int i = 0; i < m; ++i) {
         for (int j = 0; j < n; ++j) {
-            Mt[j][i] = M[i][j];
+            (*Mt)[j][i] = M[i][j];
         }
     }
 }
@@ -259,7 +258,7 @@ void Givens2(double **A, int m, int n, double*** Q, double*** R){
             generate_G(G, i, j, m, *R); //OK
             *R = multiply_matrices(G, *R, m);
             // print_matrix(G, m, m);
-            transpose_matrix(G, m, m, Gt); //OK
+            transpose_matrix(G, m, m, &Gt); //OK
             *Q = multiply_matrices(*Q, Gt, m);
             // Emptying G
             for (int k = 0; k < m; ++k) {
@@ -281,9 +280,8 @@ void Givens2(double **A, int m, int n, double*** Q, double*** R){
  * @return 0 if the subdiagonal is 0, 1 otherwise
  */
 int thresh(double **A, int m, int n, double epsilon){
-    int count = 0;
-    for (int i = 1, j=0; i < m, j < n; ++i, ++j){
-        if (fabs(A[i][j]) > epsilon){
+    for (int i = 1; i < m; ++i) {
+        if (fabs(A[i][i-1]) > epsilon) {
             return 1;
         }
     }
@@ -296,16 +294,18 @@ int thresh(double **A, int m, int n, double epsilon){
  * @param m Number of rows
  * @param n Number of columns
  */
- // TODO : Remove Q and R from the parameters
- // TODO : Add a parameter epsilon
- // TODO : Add a parameter to count the number of iterations
- // TODO : Check errors of pointers
-void compute_eigenvalues(double ***A, double ***Q, double ***R, int m, int n){
-    printf("In compute_eigenvalues\n");
-    if(thresh((*A), m, n, 1e-10) == 0){
+void compute_eigenvalues(double ***A, int m, int n, int* nb_iter){
+    if(thresh((*A), m, n, 1e-2) == 0){
+        printf("End of the recursion\n");
+        printf("Number of iterations : %d\n", *nb_iter);
+        printf("Eigenvalues : \n");
+        for (int i = 0; i < m; ++i) {
+            printf("%f\n", (*A)[i][i]);
+        }
+
         return;
     }
-    /*
+
     double**Q = (double **) malloc(m * sizeof(double *));
     for (int l = 0; l < m; ++l) {
         Q[l] = (double *) malloc(m * sizeof(double));
@@ -315,33 +315,28 @@ void compute_eigenvalues(double ***A, double ***Q, double ***R, int m, int n){
     for (int l = 0; l < m; ++l) {
         R[l] = (double *) malloc(n * sizeof(double));
     }
-     */
+
 
     double **Qt = (double **) malloc(m * sizeof(double *));
     for (int l = 0; l < m; ++l) {
         Qt[l] = (double *) malloc(m * sizeof(double));
     }
 
-    Givens2((*A), m, n, Q, R);
-    transpose_matrix(*Q, m, m, Qt);
-    printf("Q\n");
-    print_matrix(*Q, m, m);
-    printf("Q^t\n");
-    print_matrix(Qt, m, m);
+    Givens2((*A), m, n, &Q, &R);
+    transpose_matrix(Q, m, m, &Qt);
 
-    (*A) = multiply_matrices(*Q, (*A), m);
+    (*A) = multiply_matrices(Q, (*A), m);
     (*A) = multiply_matrices((*A), Qt, m);
-    printf("A\n");
-    print_matrix(*A, m, n);
-    printf("\n");
 
 
-    free_matrix(*Q, m);
+    free_matrix(Q, m);
     free_matrix(Qt, m);
-    free_matrix(*R,  m);
+    free_matrix(R,  m);
+
+    (*nb_iter)++;
 
 
-    compute_eigenvalues(A, Q, R, m, n);
+    compute_eigenvalues(A, m, n, nb_iter);
 }
 
 /**
@@ -355,34 +350,43 @@ void compute_eigenvalues(double ***A, double ***Q, double ***R, int m, int n){
 void compute_eigenvalues2(double **A, int m, int n)
 {
 
-    double**Q = (double **) malloc(m * sizeof(double *));
-    for (int l = 0; l < m; ++l) {
+    double**Q = (double **) malloc(m * sizeof(double *)); // Matrice Q taille m*m
+    for (int l = 0; l < m; ++l)
+    {
         Q[l] = (double *) malloc(m * sizeof(double));
     }
 
-    double **Qt = (double **)malloc(m * sizeof(double *));
+    double **Qt = (double **)malloc(m * sizeof(double *)); // Initialisation de Qt taille m*m
     for (int l = 0; l < m; ++l)
     {
         Qt[l] = (double *)malloc(m * sizeof(double));
     }
 
-    double**R = (double **) malloc(m * sizeof(double *));
-    for (int l = 0; l < m; ++l) {
+    double**R = (double **) malloc(m * sizeof(double *)); // Matrice R taille m*n
+    for (int l = 0; l < m; ++l)
+    {
         R[l] = (double *) malloc(n * sizeof(double));
     }
 
-    double **A2 = (double **) malloc(m * sizeof(double *));
-    for (int l = 0; l < m; ++l) {
+    double **A2 = (double **) malloc(m * sizeof(double *)); // Matrice A2 taille m*n
+    for (int l = 0; l < m; ++l)
+    {
         A2[l] = (double *) malloc(n * sizeof(double));
     }
     copy(A, A2, m, n);
-
-    for (int i = 0; i < 3000000 ; ++i)
+    for (int i = 0; i < 1000 ; ++i)
     {
+        // Threshold test
+        if (thresh(A2, m, n, 1e-2) == 0)
+        {
+            printf("Threshold reached\n");
+            printf("Number of iterations : %d\n", i);
+            break;
+        }
         Givens2(A2, m, n, &Q, &R);
-        transpose_matrix(Q, m, m, Qt);
-        A2 = multiply_matrices(A2, Qt, m);
+        transpose_matrix(Q, m, m, &Qt);
         A2 = multiply_matrices(Q, A2, m);
+        A2 = multiply_matrices(A2, Qt, m);
         //Emptying Q
         for (int k = 0; k < m; ++k)
         {
