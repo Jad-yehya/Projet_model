@@ -41,23 +41,12 @@ int main(int argc, char **argv) {
         R[i] = (double *) malloc(m * sizeof(double));
     }
 
-
-    //Givens(A, 3, 2, Q, R);
-    /*
-    Givens2(A, 3, 2, &Q, &R);
-
-    printf("In main : \n");
-
-
-    printf("Q = \n");
-    print_matrix(Q, 3, 3);
-
-    printf("R = \n");
-    print_matrix(R, 3, 2);
-    */
     int nb_iter = 0;
-    compute_eigenvalues(&A, 3, 3, &nb_iter);
+    compute_eigenvalues3(&A, 3, 3, &nb_iter);
 
+    free_matrix(A, m);
+    free_matrix(Q, m);
+    free_matrix(R, m);
 
 
     return 0;

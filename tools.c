@@ -6,6 +6,46 @@
 #include "tools.h"
 
 /**
+ * @brief Generate a random matrix of size m x n with values between a and b
+ * (The matrix is allocated before calling this function)
+ * @param A The matrix to print
+ * @param m The number of rows
+ * @param n The number of columns
+ */
+void generate_random_matrix(double ***A, int m, int n, int a, int b) {
+    *A = (double **) malloc(m * sizeof(double *));
+    for (int i = 0; i < m; i++) {
+        (*A)[i] = (double *) malloc(n * sizeof(double));
+    }
+    for (int i = 0; i < m; i++) {
+        for (int j = 0; j < n; j++) {
+            (*A)[i][j] = (double) (rand() / (b - a + 1)) + a;
+        }
+    }
+}
+
+/**
+ * @brief Generate a symmetric matrix of size m x n with values between a and b
+ * @param A The matrix to create
+ * @param m The number of rows
+ * @param n The number of columns
+ * @param a The minimum value
+ * @param b The maximum value
+ */
+void generate_symmetric_matrix(double ***A, int m, int n, int a, int b) {
+    *A = (double **) malloc(m * sizeof(double *));
+    for (int i = 0; i < m; i++) {
+        (*A)[i] = (double *) malloc(n * sizeof(double));
+    }
+    for (int i = 0; i < m; i++) {
+        for (int j = 0; j < n; j++) {
+            (*A)[i][j] = (double) (rand() / (b - a + 1)) + a;
+            (*A)[j][i] = (*A)[i][j];
+        }
+    }
+}
+
+/**
  * @brief Create a matrix of size n*n
  * @param A
  * @param n
@@ -104,6 +144,18 @@ double **multiply_matrices(double **A, double **B, int n) {
     }
     return C;
 }
+
+void multiplymatrices(double **A, double **B, int n, double ***C) {
+    for (int i = 0; i < n; ++i) { // Rows of A
+        for (int j = 0; j < n; ++j) { // Columns of B
+            (*C)[i][j] = 0;
+            for (int k = 0; k < n; ++k) { // Columns of A
+                (*C)[i][j] += A[i][k] * B[k][j];
+            }
+        }
+    }
+}
+
 
 /**
  * Puts the indices of the maximum values of each row in an array in in and jn
@@ -269,6 +321,80 @@ void Givens2(double **A, int m, int n, double*** Q, double*** R){
 
         }
     }
+    // FREES
+    free_matrix(G, m);
+    free_matrix(Gt, m);
+}
+
+void Givens3(double **A, int m, int n, double*** Q, double*** R){
+    // Matrice G
+    double**G = (double **) malloc(m * sizeof(double *));
+    for (int l = 0; l < m; ++l) {
+        G[l] = (double *) malloc(m * sizeof(double));
+    }
+
+    // Matrice Gt
+    double**Gt = (double **) malloc(m * sizeof(double *));
+    for (int l = 0; l < m; ++l) {
+        Gt[l] = (double *) malloc(m * sizeof(double));
+    }
+
+    for (int i = 0; i < m; ++i) {
+        (*Q)[i][i] = 1;
+    }
+
+    // R_tmp
+    double**R_tmp = (double **) malloc(m * sizeof(double *));
+    for (int l = 0; l < m; ++l) {
+        R_tmp[l] = (double *) malloc(n * sizeof(double));
+    }
+
+    //Q_tmp
+    double**Q_tmp = (double **) malloc(m * sizeof(double *));
+    for (int l = 0; l < m; ++l) {
+        Q_tmp[l] = (double *) malloc(m * sizeof(double));
+    }
+
+
+    // Copying A in R
+    copy(A, *R, m, n);
+
+    for (int j = 0; j < n; ++j) {
+        for (int i = j+1; i < m; ++i) {
+            // printf("Tour %d, %d\n", i, j);
+            generate_G(G, i, j, m, *R); //OK
+            //*R = multiply_matrices(G, *R, m);
+            multiplymatrices(G, *R, m, &R_tmp);
+            // print_matrix(G, m, m);
+            transpose_matrix(G, m, m, &Gt); //OK
+            //*Q = multiply_matrices(*Q, Gt, m);
+            multiplymatrices(*Q, Gt, m, &Q_tmp);
+            // Emptying G
+            for (int k = 0; k < m; ++k) {
+                for (int l = 0; l < m; ++l) {
+                    G[k][l] = 0;
+                }
+            }
+            // Copying R_tmp in R and Q_tmp in Q without using copy function
+            for (int k = 0; k < m; ++k) {
+                for (int l = 0; l < n; ++l) {
+                    (*R)[k][l] = R_tmp[k][l];
+                }
+            }
+            for (int k = 0; k < m; ++k) {
+                for (int l = 0; l < m; ++l) {
+                    (*Q)[k][l] = Q_tmp[k][l];
+                }
+            }
+        }
+
+    }
+    // FREES
+    free_matrix(G, m);
+    free_matrix(Gt, m);
+    free_matrix(R_tmp, m);
+    free_matrix(Q_tmp, m);
+
 }
 
 /**
@@ -294,15 +420,14 @@ int thresh(double **A, int m, int n, double epsilon){
  * @param m Number of rows
  * @param n Number of columns
  */
-void compute_eigenvalues(double ***A, int m, int n, int* nb_iter){
-    if(thresh((*A), m, n, 1e-2) == 0){
-        printf("End of the recursion\n");
-        printf("Number of iterations : %d\n", *nb_iter);
-        printf("Eigenvalues : \n");
-        for (int i = 0; i < m; ++i) {
-            printf("%f\n", (*A)[i][i]);
-        }
-
+void compute_eigenvalues3(double ***A, int m, int n, long* nb_iter){
+    if((thresh((*A), m, n, 1e-2) == 0) || (*nb_iter > 1000000)){
+        // printf("End of the recursion\n");
+        // printf("Number of iterations : %li\n", *nb_iter);
+        // printf("Eigenvalues : \n");
+        // for (int i = 0; i < m; ++i) {
+        //     printf("%f\n", (*A)[i][i]);
+        // }
         return;
     }
 
@@ -322,22 +447,52 @@ void compute_eigenvalues(double ***A, int m, int n, int* nb_iter){
         Qt[l] = (double *) malloc(m * sizeof(double));
     }
 
-    Givens2((*A), m, n, &Q, &R);
+    double **A2 = (double **) malloc(m * sizeof(double *));
+    for (int l = 0; l < m; ++l) {
+        A2[l] = (double *) malloc(n * sizeof(double));
+    }
+
+    double **A_temp = (double **) malloc(m * sizeof(double *));
+    for (int l = 0; l < m; ++l) {
+        A_temp[l] = (double *) malloc(n * sizeof(double));
+    }
+
+    // printf("In Eigenvalues3\n");
+
+    Givens3((*A), m, n, &Q, &R);
+    // printf("Givens done\n");
     transpose_matrix(Q, m, m, &Qt);
+    // printf("Transpose done\n");
 
-    (*A) = multiply_matrices(Q, (*A), m);
-    (*A) = multiply_matrices((*A), Qt, m);
+    //(*A) = multiply_matrices(Q, (*A), m);
+    multiplymatrices(Q, (*A), m, &A2);
+    //(*A) = multiply_matrices(A2, Qt, m);
+    multiplymatrices(A2, Qt, m, &A_temp);
 
+    // printf("Multiplication done\n");
 
     free_matrix(Q, m);
     free_matrix(Qt, m);
     free_matrix(R,  m);
+    free_matrix(A2, m);
+
+    // printf("Frees done\n");
 
     (*nb_iter)++;
 
+    // A = A_temp without copy
+    for (int i = 0; i < m; ++i) {
+        for (int j = 0; j < n; ++j) {
+            (*A)[i][j] = A_temp[i][j];
+        }
+    }
 
-    compute_eigenvalues(A, m, n, nb_iter);
+    free_matrix(A_temp, m);
+
+
+    compute_eigenvalues3(A, m, n, nb_iter);
 }
+
 
 /**
  * Iterative function that computes Q*A*Q^t
@@ -374,7 +529,7 @@ void compute_eigenvalues2(double **A, int m, int n)
         A2[l] = (double *) malloc(n * sizeof(double));
     }
     copy(A, A2, m, n);
-    for (int i = 0; i < 1000 ; ++i)
+    for (int i = 0; i < 100000; ++i)
     {
         // Threshold test
         if (thresh(A2, m, n, 1e-2) == 0)
