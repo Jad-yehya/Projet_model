@@ -17,9 +17,10 @@ void generate_random_matrix(double ***A, int m, int n, int a, int b) {
     for (int i = 0; i < m; i++) {
         (*A)[i] = (double *) malloc(n * sizeof(double));
     }
+    double range = RAND_MAX / (b - a);
     for (int i = 0; i < m; i++) {
         for (int j = 0; j < n; j++) {
-            (*A)[i][j] = (double) (rand() / (b - a + 1)) + a;
+            (*A)[i][j] = (double) (rand() / range) + a;
         }
     }
 }
@@ -37,9 +38,10 @@ void generate_symmetric_matrix(double ***A, int m, int n, int a, int b) {
     for (int i = 0; i < m; i++) {
         (*A)[i] = (double *) malloc(n * sizeof(double));
     }
+    double range = RAND_MAX / (b - a);
     for (int i = 0; i < m; i++) {
         for (int j = 0; j < n; j++) {
-            (*A)[i][j] = (double) (rand() / (b - a + 1)) + a;
+            (*A)[i][j] = ( ((double) rand()) / range) + a;
             (*A)[j][i] = (*A)[i][j];
         }
     }
@@ -422,12 +424,12 @@ int thresh(double **A, int m, int n, double epsilon){
  */
 void compute_eigenvalues3(double ***A, int m, int n, long* nb_iter){
     if((thresh((*A), m, n, 1e-2) == 0) || (*nb_iter > 1000000)){
-        // printf("End of the recursion\n");
-        // printf("Number of iterations : %li\n", *nb_iter);
-        // printf("Eigenvalues : \n");
-        // for (int i = 0; i < m; ++i) {
-        //     printf("%f\n", (*A)[i][i]);
-        // }
+        printf("End of the recursion\n");
+        printf("Number of iterations : %li\n", *nb_iter);
+        printf("Eigenvalues : \n");
+        for (int i = 0; i < m; ++i) {
+            printf("%f\n", (*A)[i][i]);
+        }
         return;
     }
 

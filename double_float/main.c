@@ -1,7 +1,7 @@
 /**
 * @authors CHAHINE Ezzedine, YEHYA Jad
 */
-#include "tools.h"
+#include "../tools.h"
 //#include "tools_mpfr.h"
 
 
@@ -41,8 +41,15 @@ int main(int argc, char **argv) {
         R[i] = (double *) malloc(m * sizeof(double));
     }
 
-    int nb_iter = 0;
-    compute_eigenvalues3(&A, 3, 3, &nb_iter);
+    long nb_iter = 0;
+    // compute_eigenvalues3(&A, 3, 3, &nb_iter);
+    Givens3(A, m, n, &Q, &R);
+
+    printf("In main : Q = \n");
+    print_matrix(Q, m, m);
+    printf("In main : R = \n");
+    print_matrix(R, m, m);
+
 
     free_matrix(A, m);
     free_matrix(Q, m);

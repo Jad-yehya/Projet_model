@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <time.h>
+#include <string.h>
 
 #ifndef MODEL_PROJECT_TOOLS_H
 #define MODEL_PROJECT_TOOLS_H
