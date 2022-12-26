@@ -3,6 +3,7 @@
 //
 
 #include "tools_mpfr.h"
+#include <mpfr.h>
 
 
 /**

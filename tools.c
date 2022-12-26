@@ -363,13 +363,9 @@ void Givens3(double **A, int m, int n, double*** Q, double*** R){
 
     for (int j = 0; j < n; ++j) {
         for (int i = j+1; i < m; ++i) {
-            // printf("Tour %d, %d\n", i, j);
             generate_G(G, i, j, m, *R); //OK
-            //*R = multiply_matrices(G, *R, m);
             multiplymatrices(G, *R, m, &R_tmp);
-            // print_matrix(G, m, m);
             transpose_matrix(G, m, m, &Gt); //OK
-            //*Q = multiply_matrices(*Q, Gt, m);
             multiplymatrices(*Q, Gt, m, &Q_tmp);
             // Emptying G
             for (int k = 0; k < m; ++k) {
