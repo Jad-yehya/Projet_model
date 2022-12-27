@@ -363,9 +363,9 @@ void Givens3(double **A, int m, int n, double*** Q, double*** R){
 
     for (int j = 0; j < n; ++j) {
         for (int i = j+1; i < m; ++i) {
-            generate_G(G, i, j, m, *R); //OK
+            generate_G(G, i, j, m, *R);
             multiplymatrices(G, *R, m, &R_tmp);
-            transpose_matrix(G, m, m, &Gt); //OK
+            transpose_matrix(G, m, m, &Gt);
             multiplymatrices(*Q, Gt, m, &Q_tmp);
             // Emptying G
             for (int k = 0; k < m; ++k) {

@@ -14,9 +14,9 @@
 /***
  * PROBLEME SEGFAULT AVANT DE RENTRER DANS GENERATE GIVENS ROTATION MATRIX
  * TODO :
- * - RESOUDRE LE PROBLEME DE SEGFAULT
- * - VERIFIER QUE LES CALCULS SONT BONS
- * - CONTINUER A IMPLEMENTER LE RESTE 
+ * - RESOUDRE LE PROBLEME DE SEGFAULT OK
+ * - VERIFIER QUE LES CALCULS SONT BONS NON
+ * - CONTINUER A IMPLEMENTER LE RESTE OK
  * - !!!!!!!!!!!!!!!!!!!! VERIFIER QUE G EST BONNE POUR LA PARTIE FLOATING POINT !!!!!!!!!
  * 
 */
@@ -162,7 +162,7 @@ void multiply_mpfr_matrices(mpfr_t **A, mpfr_t **B, int m, int n, mpfr_t ***C)
  */
 void generate_givens_matrix(mpfr_t *** G, int m, int i, int j, mpfr_t **R)
 {
-    printf("DANS GENERATE GIVENS ROTATION MATRIX");
+    // printf("DANS GENERATE GIVENS MATRIX\n");
 
     // Making G an identity matrix
     for(int i=0; i < m; i++)
@@ -171,21 +171,23 @@ void generate_givens_matrix(mpfr_t *** G, int m, int i, int j, mpfr_t **R)
         {
             if(i == j)
             {
-                mpfr_set_d((*G)[i][j], 1, MPFR_RNDN);
+                printf("i = %d, j = %d \t", i, j) ;
+                mpfr_set_d((*G[i][j]), 1, MPFR_RNDN);
             }
             else
             {
-                mpfr_set_d((*G)[i][j], 0, MPFR_RNDN);
+                mpfr_set_d((*G[i][j]), 0, MPFR_RNDN);
             }
         }
     }
 
-    printf("IDENTITY MATRIX OK");
+    // printf("IDENTITY MATRIX OK");
 
     mpfr_t c, s, tmp, tmp2;
     mpfr_init2(c, 128);
     mpfr_init2(s, 128);
     mpfr_init2(tmp, 128);
+    mpfr_init2(tmp2, 128);
 
     mpfr_mul(tmp, R[j][j], R[j][j], MPFR_RNDN);
     mpfr_mul(tmp2, R[i][j], R[i][j], MPFR_RNDN);
@@ -195,7 +197,7 @@ void generate_givens_matrix(mpfr_t *** G, int m, int i, int j, mpfr_t **R)
     mpfr_div(c, R[j][j], tmp, MPFR_RNDN);
     mpfr_div(s, R[i][j], tmp, MPFR_RNDN);
 
-    printf("C AND S OK");
+    // printf("C AND S OK");
 
     mpfr_set((*G)[j][i], s, MPFR_RNDN);
     mpfr_neg(s, s, MPFR_RNDN);
@@ -277,6 +279,7 @@ void copy_mpfr_matrix(mpfr_t **A, int m, int n, mpfr_t ***B)
 
 void Givens_mpfr(mpfr_t ** A, int m, int n, mpfr_t*** Q, mpfr_t*** R)
 {
+    // printf("DANS GIVENS MPFR\n");
     // Initialisation of G, Gt, R_tmp, Q_tmp
     mpfr_t **G, **Gt, **R_tmp, **Q_tmp;
     G = (mpfr_t **)malloc(m * sizeof(mpfr_t *));
@@ -301,44 +304,114 @@ void Givens_mpfr(mpfr_t ** A, int m, int n, mpfr_t*** Q, mpfr_t*** R)
         }
     }
 
+    // Initialisation of Q to identity matrix
+    for(int i=0; i < m; i++)
+    {
+        for(int j=0; j < m; j++)
+        {
+            if(i == j) mpfr_set_d((*Q)[i][j], 1, MPFR_RNDN);
+            else mpfr_set_d((*Q)[i][j], 0, MPFR_RNDN);
+        }
+    }
+
+
+
+    // printf("INITIALISATION G GT R_TMP Q_TMP OK\n");
+
     // Copying A into R
     copy_mpfr_matrix(A, m, n, R);
 
     for (int j = 0; j < n; ++j)
     {
-        for (int i = 0; i < m; ++i)
+        for (int i = j+1; i < m; ++i)
         {
-            generate_givens_matrix(&G, m, i, j, *R);
+            // ================ Givens rotation Matrix ================
+
+            // Initialisation of G to identity matrix
+            for(int k=0; k < m; k++) {
+                for(int l=0; l < m; l++) {
+                    if(k == l) mpfr_set_d(G[k][l], 1, MPFR_RNDN);
+                    else mpfr_set_d(G[k][l], 0, MPFR_RNDN);      
+                }
+            }
+
+            // Initialisation of c, s, tmp, tmp2
+            mpfr_t c, s, tmp, tmp2;
+            mpfr_init2(c, 128);
+            mpfr_init2(s, 128);
+            mpfr_init2(tmp, 128);
+            mpfr_init2(tmp2, 128);
+
+            // Calculating c and s
+            mpfr_mul(tmp, (*R)[j][j], (*R)[j][j], MPFR_RNDN);
+            mpfr_mul(tmp2, (*R)[i][j], (*R)[i][j], MPFR_RNDN);
+            mpfr_add(tmp, tmp, tmp2, MPFR_RNDN);
+            mpfr_sqrt(tmp, tmp, MPFR_RNDN);
+
+            mpfr_div(c, (*R)[j][j], tmp, MPFR_RNDN);
+            mpfr_div(s, (*R)[i][j], tmp, MPFR_RNDN);
+
+            // Calculating G
+            mpfr_set(G[j][j], c, MPFR_RNDN);
+            mpfr_set(G[i][i], c, MPFR_RNDN);
+
+            mpfr_set(G[i][j], s, MPFR_RNDN);
+            mpfr_neg(s, s, MPFR_RNDN);
+            mpfr_set(G[j][i], s, MPFR_RNDN);
+
+
+            mpfr_clear(c);
+            mpfr_clear(s);
+            mpfr_clear(tmp);
+            mpfr_clear(tmp2);
+
+            // =======================================================
+
             multiply_mpfr_matrices(G, *R, m, m, &R_tmp);
             transpose_mpfr_matrix(G, m, m, &Gt);
             multiply_mpfr_matrices(*Q, Gt, m, m, &Q_tmp);
 
             // Emptying G
-            for(int i=0; i < m; i++)
-            {
-                for(int j=0; j < m; j++)
-                {
-                    mpfr_set_d(G[i][j], 0, MPFR_RNDN);
+            for(int k = 0; k < m; k++) {
+                for(int l = 0; l < m; l++) {
+                    mpfr_set_d(G[k][l], 0, MPFR_RNDN);
                 }
             }
 
-            // Copying R_tmp into R without using copy_matrix_mpfr
-            for(int i=0; i < m; i++)
+            // Copying R_tmp into R without using copy_matrix_mpfr and emptying R_tmp
+            for(int k = 0; k < m; k++)
             {
-                for(int j=0; j < n; j++)
+                for(int l=0; l < n; l++)
                 {
-                    mpfr_set((*R)[i][j], R_tmp[i][j], MPFR_RNDN);
+                    mpfr_set((*R)[k][l], R_tmp[k][l], MPFR_RNDN);
+                    mpfr_set_d(R_tmp[k][l], 0, MPFR_RNDN);
                 }
             }
 
-            // Copying Q_tmp into Q without using copy_matrix_mpfr
-            for(int i=0; i < m; i++)
+            // Copying Q_tmp into Q without using copy_matrix_mpfr and emptying Q_tmp
+            for(int k=0; k < m; k++)
             {
-                for(int j=0; j < m; j++)
+                for(int l=0; l < m; l++)
                 {
-                    mpfr_set((*Q)[i][j], Q_tmp[i][j], MPFR_RNDN);
+                    mpfr_set((*Q)[k][l], Q_tmp[k][l], MPFR_RNDN);
+                    mpfr_set_d(Q_tmp[k][l], 0, MPFR_RNDN);
                 }
             }
+
+            // If an element of the subdiagonal is below the threshold, we set it to 0
+            mpfr_t threshold;
+            mpfr_init2(threshold, 128);
+            mpfr_set_d(threshold, 1e-23, MPFR_RNDN);
+
+            mpfr_t absRij;
+            mpfr_init(absRij);
+            mpfr_abs(absRij, (*R)[i][j], MPFR_RNDN);
+            if(mpfr_cmp(absRij, threshold) < 0) mpfr_set_d((*R)[i][j], 0, MPFR_RNDN);
+            mpfr_clear(absRij);
+            mpfr_clear(threshold);
+
+
+
         }
         
     }
@@ -391,8 +464,18 @@ int thresh_mpfr(mpfr_t ** A, int m, int n, mpfr_t threshold)
  */
 void compute_eigenvalues_mpfr(mpfr_t*** A, int m, int n, int* nb_iter, mpfr_t threshold)
 {
-    if((thresh_mpfr(*A, m, n, threshold)) == 0)
+    if(((thresh_mpfr(*A, m, n, threshold)) == 0) || (*nb_iter > 10000))
     {
+        printf("WE ARE HERE\n");
+        printf("Eigenvalues : ");
+        for(int i=0; i < m; i++)
+        {
+            mpfr_printf("%Rf ", (*A)[i][i]);
+        }
+        printf(" (computed in %d iterations) \n", *nb_iter);
+
+        print_mpfr_matrix(*A, m, n);
+
         return;
     }
     
